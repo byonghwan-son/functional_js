@@ -183,7 +183,91 @@ console.log(
     _get('age'))
 );
 
-// 4. _reduce 만들기
+
+// 4. _reduce 만들기 : 축약하는 함수
+// list로 들어온 값을 완전히 새로운 형태의 타입을 리턴을 할 때 주로 사용함.
+
+var slice = Array.prototype.slice;
+function _rest(list, num) {
+  return slice.call(list, num || 1);
+}
+
+function _reduce(list, r_iter, memo) {
+  // return iter(iter(iter(iter(0, 1), 2), 3), 4);
+  if(arguments.length == 2) {
+    memo = list[0];
+    list = _rest(list);
+  }
+  _each(list, function(val) {
+    memo = r_iter(memo, val);
+  })
+  return memo;
+}
+
+console.log(
+  _reduce([1, 2, 3, 4], add)
+);
+// 10
+
+// memo = add(0, 1);
+// memo = add(memo, 2);
+// memo = add(memo, 3);
+// memo = add(memo, 4);
+console.clear();
+
+// 5. 파이프라인 만들기
+// 5.1 _pipe() : reduce의 기능을 이용해서 구체화 시킨 함수
+function _pipe() {
+  var fns = arguments;
+  return function(arg) {
+    //return b(a(val));
+    return _reduce(fns, function(arg, fn) {
+      return fn(arg);
+    }, arg);
+  }
+}
+
+function _go(arg) {
+  var fns = _rest(arguments);
+  return _pipe.apply(null, fns)(arg);
+}
+
+var f1 = _pipe(
+  function(a) {return a + 1;},
+  function(a) {return a * 2;},
+  function(a) {return a * a;}
+);
+
+console.log(f1(1));
+
+// 5.2 _go() : 즉시 실행되는 함수(리턴 되는 값이 없는 형태)
+_go(1, 
+  function(a) {return a + 1;},
+  function(a) {return a * 2;},
+  function(a) {return a * a;},
+  console.log);
+
+_go(
+  users,
+  function(users) {
+    return _filter(users, function(user) { return user.age >= 30; });
+  },
+  function(users) {
+    return _map(users, _get('name'));
+  },
+  console.log
+);
+
+_go(
+  users,
+  function(users) {
+    return _filter(users, function(user) { return user.age < 30; });
+  },
+  function(users) {
+    return _map(users, _get('age'));
+  },
+  console.log
+)
 
 </script>
 </body>
